@@ -15,7 +15,7 @@ const teachers = [
     name: 'Bu Sari Wijaya',
     email: 'sari.wijaya@sman1jkt.sch.id',
     phone: '0812-3456-7890',
-    school: 'SMA Negeri 1 Jakarta',
+    // school: 'SMA Negeri 1 Jakarta',
     subject: 'Bahasa Indonesia',
     classes: ['XII IPA 1', 'XII IPA 2', 'XI IPA 3'],
     totalStudents: 108,
@@ -28,7 +28,7 @@ const teachers = [
     name: 'Pak Ahmad Hidayat',
     email: 'ahmad.hidayat@sman1jkt.sch.id',
     phone: '0813-4567-8901',
-    school: 'SMA Negeri 1 Jakarta',
+    // school: 'SMA Negeri 1 Jakarta',
     subject: 'Matematika',
     classes: ['XII IPA 1', 'XI IPA 1', 'XI IPA 2'],
     totalStudents: 96,
@@ -41,7 +41,7 @@ const teachers = [
     name: 'Bu Maya Indira',
     email: 'maya.indira@harapanbangsa.sch.id',
     phone: '0814-5678-9012',
-    school: 'SMA Swasta Harapan Bangsa',
+    // school: 'SMA Swasta Harapan Bangsa',
     subject: 'Biologi',
     classes: ['XII IPA 3', 'XI IPA 4'],
     totalStudents: 72,
@@ -54,7 +54,7 @@ const teachers = [
     name: 'Pak Budi Santoso',
     email: 'budi.santoso@santoyusup.sch.id',
     phone: '0815-6789-0123',
-    school: 'SMA Katolik Santo Yusup',
+    // school: 'SMA Katolik Santo Yusup',
     subject: 'Fisika',
     classes: ['XII IPA 2', 'XI IPA 1'],
     totalStudents: 64,
@@ -79,7 +79,6 @@ export default function TeachersPage() {
     name: '',
     email: '',
     phone: '',
-    school: '',
     subject: ''
   })
   const [successDialog, setSuccessDialog] = useState(false)
@@ -124,17 +123,7 @@ export default function TeachersPage() {
         </div>
       )
     },
-    {
-      key: 'school',
-      header: 'Sekolah',
-      sortable: true,
-      render: (item: any) => (
-        <div className="flex items-start space-x-2">
-          <MapPin className="h-4 w-4 text-slate-400 mt-0.5 flex-shrink-0" />
-          <span className="text-sm text-slate-600">{item.school}</span>
-        </div>
-      )
-    },
+    // ...kolom 'school' dihapus...
     {
       key: 'classes',
       header: 'Kelas yang Diampu',
@@ -266,17 +255,7 @@ export default function TeachersPage() {
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="school">Sekolah</Label>
-              <input
-                id="school"
-                type="text"
-                className="block w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                value={newTeacher.school}
-                onChange={e => setNewTeacher({ ...newTeacher, school: e.target.value })}
-                required
-              />
-            </div>
+            {/* Input sekolah dihapus */}
             <div className="space-y-2">
               <Label htmlFor="subject">Mata Pelajaran</Label>
               <input
@@ -299,13 +278,12 @@ export default function TeachersPage() {
                   name: newTeacher.name,
                   email: newTeacher.email,
                   phone: newTeacher.phone,
-                  school: newTeacher.school,
                   subject: newTeacher.subject
                 });
                 if (!error) {
                   setAddTeacherDialog(false);
                   setSuccessDialog(true);
-                  setNewTeacher({ name: '', email: '', phone: '', school: '', subject: '' });
+                  setNewTeacher({ name: '', email: '', phone: '', subject: '' });
                 } else {
                   console.error('Supabase error:', error);
                   alert('Gagal menyimpan data guru!\n' + (error?.message || ''));
