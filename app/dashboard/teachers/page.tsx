@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { createClient } from '@/lib/supabase'
 import { DataTable, StatusBadge, UserAvatar } from '@/components/ui/data-table'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -73,6 +74,15 @@ const availableClasses = [
 export default function TeachersPage() {
   const [assignClassDialog, setAssignClassDialog] = useState<{ open: boolean; teacherId: string | null }>({ open: false, teacherId: null })
   const [selectedClass, setSelectedClass] = useState('')
+  const [addTeacherDialog, setAddTeacherDialog] = useState(false)
+  const [newTeacher, setNewTeacher] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    school: '',
+    subject: ''
+  })
+  const [successDialog, setSuccessDialog] = useState(false)
 
   const statusLabels = {
     active: { label: 'Aktif', className: 'bg-green-100 text-green-800' },
@@ -192,7 +202,7 @@ export default function TeachersPage() {
           <h1 className="text-2xl md:text-3xl font-semibold text-slate-900">Manajemen Guru</h1>
           <p className="text-slate-500 text-sm">Kelola akun guru dalam sistem</p>
         </div>
-        <Button className="bg-slate-900 hover:brightness-110 text-white">
+        <Button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow" onClick={() => setAddTeacherDialog(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Tambah Guru
         </Button>
@@ -216,6 +226,111 @@ export default function TeachersPage() {
         )}
         itemsPerPage={10}
       />
+      {/* Add Teacher Dialog */}
+      <Dialog open={addTeacherDialog} onOpenChange={setAddTeacherDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Tambah Guru Baru</DialogTitle>
+          </DialogHeader>
+          <form className="space-y-4" onSubmit={e => { e.preventDefault(); setAddTeacherDialog(false); }}>
+            <div className="space-y-2">
+              <Label htmlFor="name">Nama</Label>
+              <input
+                id="name"
+                type="text"
+                className="block w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                value={newTeacher.name}
+                onChange={e => setNewTeacher({ ...newTeacher, name: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <input
+                id="email"
+                type="email"
+                className="block w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                value={newTeacher.email}
+                onChange={e => setNewTeacher({ ...newTeacher, email: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">No. HP</Label>
+              <input
+                id="phone"
+                type="text"
+                className="block w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                value={newTeacher.phone}
+                onChange={e => setNewTeacher({ ...newTeacher, phone: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="school">Sekolah</Label>
+              <input
+                id="school"
+                type="text"
+                className="block w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                value={newTeacher.school}
+                onChange={e => setNewTeacher({ ...newTeacher, school: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="subject">Mata Pelajaran</Label>
+              <input
+                id="subject"
+                type="text"
+                className="block w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                value={newTeacher.subject}
+                onChange={e => setNewTeacher({ ...newTeacher, subject: e.target.value })}
+                required
+              />
+            </div>
+            <div className="flex justify-end space-x-2 pt-2">
+              <Button variant="outline" type="button" className="border-blue-600 text-blue-600 hover:bg-blue-50" onClick={() => setAddTeacherDialog(false)}>
+                Batal
+              </Button>
+              <Button type="submit" className="bg-blue-600 text-white font-semibold hover:bg-blue-700" onClick={async (e) => {
+                e.preventDefault();
+                const supabase = createClient();
+                const { error } = await supabase.from('teachers').insert({
+                  name: newTeacher.name,
+                  email: newTeacher.email,
+                  phone: newTeacher.phone,
+                  school: newTeacher.school,
+                  subject: newTeacher.subject
+                });
+                if (!error) {
+                  setAddTeacherDialog(false);
+                  setSuccessDialog(true);
+                  setNewTeacher({ name: '', email: '', phone: '', school: '', subject: '' });
+                } else {
+                  console.error('Supabase error:', error);
+                  alert('Gagal menyimpan data guru!\n' + (error?.message || ''));
+                }
+              }}>
+                Simpan
+              </Button>
+              {/* Success Dialog */}
+              <Dialog open={successDialog} onOpenChange={setSuccessDialog}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Berhasil!</DialogTitle>
+                  </DialogHeader>
+                  <div className="py-4 text-center text-blue-600 font-semibold">Data guru berhasil disimpan ke database Supabase.</div>
+                  <div className="flex justify-end">
+                    <Button className="bg-blue-600 text-white font-semibold hover:bg-blue-700" onClick={() => setSuccessDialog(false)}>
+                      Tutup
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Assign Class Dialog */}
       <Dialog open={assignClassDialog.open} onOpenChange={(open) => setAssignClassDialog({ open, teacherId: null })}>
