@@ -5,12 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Users, BookOpen, GraduationCap, TrendingUp, Calendar, Target, Award, Activity, Brain, Heart, Handshake, Lightbulb, User } from 'lucide-react'
 
 // Komponen untuk Statistik Card
-function StatCard({ 
-  title, 
-  value, 
-  description, 
-  icon: Icon, 
-  trend, 
+function StatCard({
+  title,
+  value,
+  description,
+  icon: Icon,
+  trend,
   trendValue,
   color = "text-blue-600"
 }: {
@@ -34,9 +34,8 @@ function StatCard({
           {description}
         </p>
         {trend && trendValue && (
-          <div className={`flex items-center text-xs mt-2 ${
-            trend === 'up' ? 'text-green-600' : 'text-red-600'
-          }`}>
+          <div className={`flex items-center text-xs mt-2 ${trend === 'up' ? 'text-green-600' : 'text-red-600'
+            }`}>
             <TrendingUp className={`h-3 w-3 mr-1 ${trend === 'down' ? 'rotate-180' : ''}`} />
             {trendValue} dari bulan lalu
           </div>
@@ -47,11 +46,11 @@ function StatCard({
 }
 
 // Komponen untuk Activity Item
-function ActivityItem({ 
-  title, 
-  description, 
-  time, 
-  type 
+function ActivityItem({
+  title,
+  description,
+  time,
+  type
 }: {
   title: string
   description: string
@@ -95,11 +94,11 @@ function ActivityItem({
 }
 
 // Komponen Progress Bar untuk Dimensi P5
-function DimensionProgress({ 
-  dimension, 
-  score, 
-  status, 
-  color 
+function DimensionProgress({
+  dimension,
+  score,
+  status,
+  color
 }: {
   dimension: string
   score: number
@@ -107,7 +106,7 @@ function DimensionProgress({
   color: string
 }) {
   const percentage = (score / 4) * 100
-  
+
   return (
     <div className="p-4 rounded-lg border bg-white">
       <div className="flex justify-between items-center mb-2">
@@ -118,7 +117,7 @@ function DimensionProgress({
       </div>
       <div className="flex items-center space-x-2">
         <div className="flex-1 bg-gray-200 rounded-full h-2">
-          <div 
+          <div
             className={`bg-${color}-500 h-2 rounded-full transition-all duration-300`}
             style={{ width: `${percentage}%` }}
           />
@@ -141,7 +140,7 @@ export default function DashboardPage() {
     {
       title: "Penilaian Diri Baru",
       description: "45 kuisioner penilaian diri dimensi Beriman & Berakhlak Mulia",
-      time: "12 menit yang lalu", 
+      time: "12 menit yang lalu",
       type: "assessment" as const
     },
     {
@@ -173,12 +172,19 @@ export default function DashboardPage() {
     { dimension: "Kreatif", score: 3.4, status: "Berkembang", color: "pink" }
   ]
 
+  // ...existing code...
+  // Import chart
+  const DailyUsageChart = require('@/components/dashboard/daily-usage-chart').default
   return (
     <div className="space-y-6">
       {/* Header Section */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Statistik Penggunaan Sistem</h1>
         <p className="text-gray-600">Pantau aktivitas Assessment as Learning (AaL) dalam P5 dan Kokurikuler</p>
+        {/* Statistik Penggunaan Harian */}
+        <div className="mt-6">
+          <DailyUsageChart />
+        </div>
       </div>
 
       {/* Statistics Cards Grid - P5 Focused */}

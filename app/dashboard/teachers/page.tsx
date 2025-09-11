@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
 import { DataTable } from '@/components/ui/data-table';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -12,100 +13,102 @@ import { Badge } from '@/components/ui/badge';
 
 const statusLabels: Record<string, { label: string; className: string }> = {
   active: { label: 'Aktif', className: 'bg-green-100 text-green-800' },
-  inactive: { label: 'Nonaktif', className: 'bg-gray-100 text-gray-800' }
+  inactive: { label: 'Nonaktif', className: 'bg-red-100 text-red-800' }
 }
 
-const columns = [
-  {
-    key: 'name',
-    header: 'Guru',
-    sortable: true,
-    render: (item: any) => (
-      <div className="flex items-center">
-        <Avatar>
-          <AvatarImage src={item.avatarUrl || undefined} alt={item.name || 'Guru'} />
-          <AvatarFallback>{item.name ? item.name[0] : '?'}</AvatarFallback>
-        </Avatar>
-        <div className="ml-4 mt-1">
-          <div className="text-base font-semibold text-slate-900">{item.name || <span className="italic text-gray-400">(Nama kosong)</span>}</div>
-          <div className="text-sm font-medium text-slate-600">{item.subject || <span className="italic text-gray-400">(Mata pelajaran kosong)</span>}</div>
-          {item.assignedClass && (
-            <div className="text-xs text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full inline-block mt-1">
-              Wali Kelas: {item.assignedClass}
-            </div>
-          )}
-        </div>
-      </div>
-    )
-  },
-  {
-    key: 'contact',
-    header: 'Kontak',
-    render: (item: any) => (
-      <div className="space-y-1">
-        <div className="flex items-center space-x-2 text-sm">
-          <Mail className="h-4 w-4 text-slate-400" />
-          <span className="truncate">{item.email}</span>
-        </div>
-        <div className="flex items-center space-x-2 text-sm">
-          <Phone className="h-4 w-4 text-slate-400" />
-          <span>{item.phone}</span>
-        </div>
-      </div>
-    )
-  },
-  {
-    key: 'classes',
-    header: 'Kelas yang Diampu',
-    render: (item: any) => (
-      <div className="space-y-1">
-        <div className="flex flex-wrap gap-1">
-          {item.classes.slice(0, 2).map((className: string, index: number) => (
-            <span key={index} className="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded-full">
-              {className}
-            </span>
-          ))}
-          {item.classes.length > 2 && (
-            <span className="text-xs text-slate-500">+{item.classes.length - 2} lainnya</span>
-          )}
-        </div>
-      </div>
-    )
-  },
-  {
-    key: 'stats',
-    header: 'Statistik',
-    render: (item: any) => (
-      <div className="flex space-x-4">
-        <div className="text-center">
-          <div className="flex items-center space-x-1">
-            <Users className="h-4 w-4 text-purple-600" />
-            <span className="text-lg font-bold text-purple-600">{item.totalStudents}</span>
-          </div>
-          <div className="text-xs text-slate-500">Siswa</div>
-        </div>
-        <div className="text-center">
-          <div className="flex items-center space-x-1">
-            <BookOpen className="h-4 w-4 text-green-600" />
-            <span className="text-lg font-bold text-green-600">{item.activeProjects}</span>
-          </div>
-          <div className="text-xs text-slate-500">Proyek</div>
-        </div>
-      </div>
-    )
-  },
-  {
-    key: 'status',
-    header: 'Status',
-    render: (item: any) => (
-      <Badge className={statusLabels[item.status]?.className || ''}>
-        {statusLabels[item.status]?.label || item.status}
-      </Badge>
-    )
-  }
-]
 
 export default function TeachersPage() {
+
+  const columns = [
+    {
+      key: 'name',
+      header: 'Guru',
+      sortable: true,
+      render: (item: any) => (
+        <div className="flex items-center">
+          <Avatar>
+            <AvatarImage src={item.avatarUrl || undefined} alt={item.name || 'Guru'} />
+            <AvatarFallback>{item.name ? item.name[0] : '?'}</AvatarFallback>
+          </Avatar>
+          <div className="ml-4 mt-1">
+            <div className="text-base font-semibold text-slate-900">{item.name || <span className="italic text-gray-400">(Nama kosong)</span>}</div>
+            <div className="text-sm font-medium text-slate-600">{item.subject || <span className="italic text-gray-400">(Mata pelajaran kosong)</span>}</div>
+            {item.assignedClass && (
+              <div className="text-xs text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full inline-block mt-1">
+                Wali Kelas: {item.assignedClass}
+              </div>
+            )}
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'contact',
+      header: 'Kontak',
+      render: (item: any) => (
+        <div className="space-y-1">
+          <div className="flex items-center space-x-2 text-sm">
+            <Mail className="h-4 w-4 text-slate-400" />
+            <span className="truncate">{item.email}</span>
+          </div>
+          <div className="flex items-center space-x-2 text-sm">
+            <Phone className="h-4 w-4 text-slate-400" />
+            <span>{item.phone}</span>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'classes',
+      header: 'Kelas yang Diampu',
+      render: (item: any) => (
+        <div className="space-y-1">
+          <div className="flex flex-wrap gap-1">
+            {item.classes.slice(0, 2).map((className: string, index: number) => (
+              <span key={index} className="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded-full">
+                {className}
+              </span>
+            ))}
+            {item.classes.length > 2 && (
+              <span className="text-xs text-slate-500">+{item.classes.length - 2} lainnya</span>
+            )}
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'stats',
+      header: 'Statistik',
+      render: (item: any) => (
+        <div className="flex space-x-4">
+          <div className="text-center">
+            <div className="flex items-center space-x-1">
+              <Users className="h-4 w-4 text-purple-600" />
+              <span className="text-lg font-bold text-purple-600">{item.totalStudents}</span>
+            </div>
+            <div className="text-xs text-slate-500">Siswa</div>
+          </div>
+          <div className="text-center">
+            <div className="flex items-center space-x-1">
+              <BookOpen className="h-4 w-4 text-green-600" />
+              <span className="text-lg font-bold text-green-600">{item.activeProjects}</span>
+            </div>
+            <div className="text-xs text-slate-500">Proyek</div>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (item: any) => (
+        <span onClick={() => handleStatusClick(item)} style={{ cursor: 'pointer' }}>
+          <StatusBadge status={item.status} labels={statusLabels} />
+        </span>
+      )
+    }
+  ];
+
   // State declarations
   const [assignClassDialog, setAssignClassDialog] = useState<{ open: boolean; teacherId: string | null }>({ open: false, teacherId: null });
   const [selectedClass, setSelectedClass] = useState('');
@@ -114,12 +117,28 @@ export default function TeachersPage() {
   const [editTeacherDialog, setEditTeacherDialog] = useState<{ open: boolean; teacher: any | null }>({ open: false, teacher: null });
   const [editTeacher, setEditTeacher] = useState({ name: '', email: '', phone: '', subject: '' });
   const [teachers, setTeachers] = useState<any[]>([]);
-  const availableClasses = [
-    { id: '1', name: 'XII IPA 1', currentTeacher: null },
-    { id: '2', name: 'XII IPA 3', currentTeacher: null },
-    { id: '3', name: 'XI IPA 1', currentTeacher: null },
-    { id: '4', name: 'XI IPA 2', currentTeacher: null },
-  ];
+  const [statusDialog, setStatusDialog] = useState<{ open: boolean; teacher: any | null }>({ open: false, teacher: null });
+
+  // Handler untuk klik status badge
+  function handleStatusClick(teacher: any) {
+    setStatusDialog({ open: true, teacher });
+  }
+
+  // Handler untuk update status
+  const handleChangeStatus = async (newStatus: 'active' | 'inactive') => {
+    if (!statusDialog.teacher) return;
+    const supabase = createClient();
+    const statusValue = newStatus === 'active' ? 1 : 0;
+    const { error } = await supabase.from('teachers').update({ status: statusValue }).eq('id', statusDialog.teacher.id);
+    if (!error) {
+      setStatusDialog({ open: false, teacher: null });
+      await fetchTeachers();
+    } else {
+      alert('Gagal mengubah status guru!');
+      console.error('Supabase error:', error);
+    }
+  };
+  const availableClasses: { id: string; name: string; currentTeacher: any }[] = [];
   // Fetch teachers from Supabase
   const fetchTeachers = async () => {
     const supabase = createClient();
@@ -130,7 +149,7 @@ export default function TeachersPage() {
         classes: item.classes || [],
         totalStudents: item.totalStudents || 0,
         activeProjects: item.activeProjects || 0,
-        status: item.status || 'active',
+        status: item.status === 1 ? 'active' : item.status === 0 ? 'inactive' : (item.status || 'active'),
         assignedClass: item.assignedClass || null
       })));
     } else {
@@ -239,6 +258,36 @@ export default function TeachersPage() {
         )}
         itemsPerPage={10}
       />
+      {/* Status Dialog */}
+      <Dialog open={statusDialog.open} onOpenChange={(open) => setStatusDialog({ open, teacher: open ? statusDialog.teacher : null })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ubah Status Guru</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="status-select">Pilih Status</Label>
+              <Select
+                value={statusDialog.teacher?.status === 'active' ? 'active' : 'inactive'}
+                onValueChange={(val) => handleChangeStatus(val as 'active' | 'inactive')}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Aktif</SelectItem>
+                  <SelectItem value="inactive">Nonaktif</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end pt-2">
+              <Button variant="outline" onClick={() => setStatusDialog({ open: false, teacher: null })}>
+                Batal
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
       {/* Edit Teacher Dialog */}
       <Dialog open={editTeacherDialog.open} onOpenChange={(open) => setEditTeacherDialog({ open, teacher: open ? editTeacherDialog.teacher : null })}>
         <DialogContent>
