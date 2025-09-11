@@ -1,188 +1,167 @@
 'use client'
+import { useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase';
+import { DataTable } from '@/components/ui/data-table';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, Mail, Phone, Users, BookOpen, UserCheck } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 
-import { useState } from 'react'
-import { createClient } from '@/lib/supabase'
-import { DataTable, StatusBadge, UserAvatar } from '@/components/ui/data-table'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Plus, Mail, Phone, MapPin, Users, BookOpen, UserCheck } from 'lucide-react'
+const statusLabels: Record<string, { label: string; className: string }> = {
+  active: { label: 'Aktif', className: 'bg-green-100 text-green-800' },
+  inactive: { label: 'Nonaktif', className: 'bg-gray-100 text-gray-800' }
+}
 
-const teachers = [
+const columns = [
   {
-    id: 1,
-    name: 'Bu Sari Wijaya',
-    email: 'sari.wijaya@sman1jkt.sch.id',
-    phone: '0812-3456-7890',
-    // school: 'SMA Negeri 1 Jakarta',
-    subject: 'Bahasa Indonesia',
-    classes: ['XII IPA 1', 'XII IPA 2', 'XI IPA 3'],
-    totalStudents: 108,
-    activeProjects: 3,
-    status: 'active',
-    assignedClass: 'XII IPA 1'
+    key: 'name',
+    header: 'Guru',
+    sortable: true,
+    render: (item: any) => (
+      <div className="flex items-center">
+        <Avatar>
+          <AvatarImage src={item.avatarUrl || undefined} alt={item.name || 'Guru'} />
+          <AvatarFallback>{item.name ? item.name[0] : '?'}</AvatarFallback>
+        </Avatar>
+        <div className="ml-4 mt-1">
+          <div className="text-base font-semibold text-slate-900">{item.name || <span className="italic text-gray-400">(Nama kosong)</span>}</div>
+          <div className="text-sm font-medium text-slate-600">{item.subject || <span className="italic text-gray-400">(Mata pelajaran kosong)</span>}</div>
+          {item.assignedClass && (
+            <div className="text-xs text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full inline-block mt-1">
+              Wali Kelas: {item.assignedClass}
+            </div>
+          )}
+        </div>
+      </div>
+    )
   },
   {
-    id: 2,
-    name: 'Pak Ahmad Hidayat',
-    email: 'ahmad.hidayat@sman1jkt.sch.id',
-    phone: '0813-4567-8901',
-    // school: 'SMA Negeri 1 Jakarta',
-    subject: 'Matematika',
-    classes: ['XII IPA 1', 'XI IPA 1', 'XI IPA 2'],
-    totalStudents: 96,
-    activeProjects: 2,
-    status: 'active',
-    assignedClass: 'XII IPA 2'
+    key: 'contact',
+    header: 'Kontak',
+    render: (item: any) => (
+      <div className="space-y-1">
+        <div className="flex items-center space-x-2 text-sm">
+          <Mail className="h-4 w-4 text-slate-400" />
+          <span className="truncate">{item.email}</span>
+        </div>
+        <div className="flex items-center space-x-2 text-sm">
+          <Phone className="h-4 w-4 text-slate-400" />
+          <span>{item.phone}</span>
+        </div>
+      </div>
+    )
   },
   {
-    id: 3,
-    name: 'Bu Maya Indira',
-    email: 'maya.indira@harapanbangsa.sch.id',
-    phone: '0814-5678-9012',
-    // school: 'SMA Swasta Harapan Bangsa',
-    subject: 'Biologi',
-    classes: ['XII IPA 3', 'XI IPA 4'],
-    totalStudents: 72,
-    activeProjects: 4,
-    status: 'active',
-    assignedClass: null
+    key: 'classes',
+    header: 'Kelas yang Diampu',
+    render: (item: any) => (
+      <div className="space-y-1">
+        <div className="flex flex-wrap gap-1">
+          {item.classes.slice(0, 2).map((className: string, index: number) => (
+            <span key={index} className="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded-full">
+              {className}
+            </span>
+          ))}
+          {item.classes.length > 2 && (
+            <span className="text-xs text-slate-500">+{item.classes.length - 2} lainnya</span>
+          )}
+        </div>
+      </div>
+    )
   },
   {
-    id: 4,
-    name: 'Pak Budi Santoso',
-    email: 'budi.santoso@santoyusup.sch.id',
-    phone: '0815-6789-0123',
-    // school: 'SMA Katolik Santo Yusup',
-    subject: 'Fisika',
-    classes: ['XII IPA 2', 'XI IPA 1'],
-    totalStudents: 64,
-    activeProjects: 1,
-    status: 'inactive',
-    assignedClass: 'XII IPA 2'
+    key: 'stats',
+    header: 'Statistik',
+    render: (item: any) => (
+      <div className="flex space-x-4">
+        <div className="text-center">
+          <div className="flex items-center space-x-1">
+            <Users className="h-4 w-4 text-purple-600" />
+            <span className="text-lg font-bold text-purple-600">{item.totalStudents}</span>
+          </div>
+          <div className="text-xs text-slate-500">Siswa</div>
+        </div>
+        <div className="text-center">
+          <div className="flex items-center space-x-1">
+            <BookOpen className="h-4 w-4 text-green-600" />
+            <span className="text-lg font-bold text-green-600">{item.activeProjects}</span>
+          </div>
+          <div className="text-xs text-slate-500">Proyek</div>
+        </div>
+      </div>
+    )
+  },
+  {
+    key: 'status',
+    header: 'Status',
+    render: (item: any) => (
+      <Badge className={statusLabels[item.status]?.className || ''}>
+        {statusLabels[item.status]?.label || item.status}
+      </Badge>
+    )
   }
-]
-
-const availableClasses = [
-  { id: '1', name: 'XII IPA 1', currentTeacher: null },
-  { id: '2', name: 'XII IPA 3', currentTeacher: null },
-  { id: '3', name: 'XI IPA 1', currentTeacher: null },
-  { id: '4', name: 'XI IPA 2', currentTeacher: null },
 ]
 
 export default function TeachersPage() {
-  const [assignClassDialog, setAssignClassDialog] = useState<{ open: boolean; teacherId: string | null }>({ open: false, teacherId: null })
-  const [selectedClass, setSelectedClass] = useState('')
-  const [addTeacherDialog, setAddTeacherDialog] = useState(false)
-  const [newTeacher, setNewTeacher] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    subject: ''
-  })
-  const [successDialog, setSuccessDialog] = useState(false)
-
-  const statusLabels = {
-    active: { label: 'Aktif', className: 'bg-green-100 text-green-800' },
-    inactive: { label: 'Nonaktif', className: 'bg-gray-100 text-gray-800' }
-  }
-
-  const columns = [
-    {
-      key: 'name',
-      header: 'Guru',
-      sortable: true,
-      render: (item: any) => (
-        <div>
-          <UserAvatar name={item.name} />
-          <div className="ml-11 mt-1">
-            <div className="text-sm font-medium text-slate-600">{item.subject}</div>
-            {item.assignedClass && (
-              <div className="text-xs text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full inline-block mt-1">
-                Wali Kelas: {item.assignedClass}
-              </div>
-            )}
-          </div>
-        </div>
-      )
-    },
-    {
-      key: 'contact',
-      header: 'Kontak',
-      render: (item: any) => (
-        <div className="space-y-1">
-          <div className="flex items-center space-x-2 text-sm">
-            <Mail className="h-4 w-4 text-slate-400" />
-            <span className="truncate">{item.email}</span>
-          </div>
-          <div className="flex items-center space-x-2 text-sm">
-            <Phone className="h-4 w-4 text-slate-400" />
-            <span>{item.phone}</span>
-          </div>
-        </div>
-      )
-    },
-    // ...kolom 'school' dihapus...
-    {
-      key: 'classes',
-      header: 'Kelas yang Diampu',
-      render: (item: any) => (
-        <div className="space-y-1">
-          <div className="flex flex-wrap gap-1">
-            {item.classes.slice(0, 2).map((className: string, index: number) => (
-              <span key={index} className="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded-full">
-                {className}
-              </span>
-            ))}
-            {item.classes.length > 2 && (
-              <span className="text-xs text-slate-500">+{item.classes.length - 2} lainnya</span>
-            )}
-          </div>
-        </div>
-      )
-    },
-    {
-      key: 'stats',
-      header: 'Statistik',
-      render: (item: any) => (
-        <div className="flex space-x-4">
-          <div className="text-center">
-            <div className="flex items-center space-x-1">
-              <Users className="h-4 w-4 text-purple-600" />
-              <span className="text-lg font-bold text-purple-600">{item.totalStudents}</span>
-            </div>
-            <div className="text-xs text-slate-500">Siswa</div>
-          </div>
-          <div className="text-center">
-            <div className="flex items-center space-x-1">
-              <BookOpen className="h-4 w-4 text-green-600" />
-              <span className="text-lg font-bold text-green-600">{item.activeProjects}</span>
-            </div>
-            <div className="text-xs text-slate-500">Proyek</div>
-          </div>
-        </div>
-      )
-    },
-    {
-      key: 'status',
-      header: 'Status',
-      render: (item: any) => (
-        <StatusBadge status={item.status} labels={statusLabels} />
-      )
+  // State declarations
+  const [assignClassDialog, setAssignClassDialog] = useState<{ open: boolean; teacherId: string | null }>({ open: false, teacherId: null });
+  const [selectedClass, setSelectedClass] = useState('');
+  const [addTeacherDialog, setAddTeacherDialog] = useState(false);
+  const [newTeacher, setNewTeacher] = useState({ name: '', email: '', phone: '', subject: '' });
+  const [successDialog, setSuccessDialog] = useState(false);
+  const [teachers, setTeachers] = useState<any[]>([]);
+  const availableClasses = [
+    { id: '1', name: 'XII IPA 1', currentTeacher: null },
+    { id: '2', name: 'XII IPA 3', currentTeacher: null },
+    { id: '3', name: 'XI IPA 1', currentTeacher: null },
+    { id: '4', name: 'XI IPA 2', currentTeacher: null },
+  ];
+  // Fetch teachers from Supabase
+  const fetchTeachers = async () => {
+    const supabase = createClient();
+    const { data, error } = await supabase.from('teachers').select('*');
+    if (!error && data) {
+      setTeachers(data.map((item: any) => ({
+        ...item,
+        classes: item.classes || [],
+        totalStudents: item.totalStudents || 0,
+        activeProjects: item.activeProjects || 0,
+        status: item.status || 'active',
+        assignedClass: item.assignedClass || null
+      })));
+    } else {
+      console.error('Gagal fetch guru:', error);
     }
-  ]
+  };
 
+  // Realtime subscription
+  useEffect(() => {
+    fetchTeachers();
+    const supabase = createClient();
+    const channel = supabase.channel('teachers-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'teachers' }, () => {
+        fetchTeachers();
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Handler functions
   const handleAssignClass = (teacherId: string) => {
-    setAssignClassDialog({ open: true, teacherId })
-  }
+    setAssignClassDialog({ open: true, teacherId });
+  };
 
   const saveClassAssignment = () => {
     // Implementation for saving class assignment
-    console.log('Assigning class', selectedClass, 'to teacher', assignClassDialog.teacherId)
-    setAssignClassDialog({ open: false, teacherId: null })
-    setSelectedClass('')
-  }
+    console.log('Assigning class', selectedClass, 'to teacher', assignClassDialog.teacherId);
+    setAssignClassDialog({ open: false, teacherId: null });
+    setSelectedClass('');
+  };
 
   return (
     <div className="space-y-6">
@@ -284,9 +263,18 @@ export default function TeachersPage() {
                   setAddTeacherDialog(false);
                   setSuccessDialog(true);
                   setNewTeacher({ name: '', email: '', phone: '', subject: '' });
+                  await fetchTeachers();
                 } else {
                   console.error('Supabase error:', error);
-                  alert('Gagal menyimpan data guru!\n' + (error?.message || ''));
+                  let errorMsg = '';
+                  if (error) {
+                    if (typeof error === 'object' && error !== null && 'message' in error) {
+                      errorMsg = (error as any).message;
+                    } else {
+                      errorMsg = JSON.stringify(error);
+                    }
+                  }
+                  alert('Gagal menyimpan data guru!\n' + errorMsg);
                 }
               }}>
                 Simpan
@@ -343,6 +331,6 @@ export default function TeachersPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   )
 }
