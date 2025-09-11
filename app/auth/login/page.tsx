@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { DummyAuth } from '@/lib/dummy-auth'
+// import { DummyAuth } from '@/lib/dummy-auth'
+import { createClient } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -23,11 +24,20 @@ export default function LoginPage() {
     setError('')
 
     try {
-      const { user, error: authError } = await DummyAuth.signIn(email, password)
+      const supabase = createClient()
+      const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
 
-      if (authError) {
-        setError(authError)
+      if (authError || !data?.user) {
+        setError(authError?.message || 'Login gagal, cek email/password')
       } else {
+        // Catat login ke Supabase dengan user_id dari Supabase Auth
+        try {
+          await supabase.from('users_logins').insert([
+            { user_id: data.user.id, login_at: new Date().toISOString() }
+          ])
+        } catch (err) {
+          // Optional: bisa log error, tapi jangan blokir login
+        }
         router.push('/dashboard')
       }
     } catch (err) {
@@ -100,9 +110,9 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <Button 
-                type="submit" 
-                className="w-full bg-blue-600 hover:bg-blue-700" 
+              <Button
+                type="submit"
+                className="w-full bg-blue-600 hover:bg-blue-700"
                 disabled={loading}
               >
                 {loading ? 'Memproses...' : 'Masuk'}
@@ -112,15 +122,10 @@ export default function LoginPage() {
             <div className="mt-6 pt-6 border-t border-gray-200">
               <div className="text-center">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm text-blue-800 font-medium mb-2">🚀 Mode Demo</p>
+                  <p className="text-sm text-blue-800 font-medium mb-2">� Login Supabase Auth</p>
                   <p className="text-xs text-blue-700 mb-3">
-                    Aplikasi sedang berjalan dalam mode demo dengan autentikasi dummy
+                    Aplikasi menggunakan autentikasi asli Supabase
                   </p>
-                  <div className="space-y-2 text-xs text-blue-600">
-                    <p><strong>Admin:</strong> admin@jejakbelajar.id / admin123</p>
-                    <p><strong>Guru:</strong> guru@jejakbelajar.id / guru123</p>
-                    <p><strong>Siswa:</strong> siswa@jejakbelajar.id / siswa123</p>
-                  </div>
                 </div>
               </div>
             </div>
