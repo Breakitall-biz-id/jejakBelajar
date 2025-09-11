@@ -122,10 +122,16 @@ export default function LoginPage() {
             <div className="mt-6 pt-6 border-t border-gray-200">
               <div className="text-center">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm text-blue-800 font-medium mb-2">� Login Supabase Auth</p>
-                  <p className="text-xs text-blue-700 mb-3">
-                    Aplikasi menggunakan autentikasi asli Supabase
-                  </p>
+                  <div className="mt-2">
+                    <p className="text-xs text-blue-700 mb-3">
+                      Aplikasi sedang berjalan dalam mode demo dengan autentikasi dummy
+                    </p>
+                    <div className="space-y-2 text-xs text-blue-600">
+                      <p><strong>Admin:</strong> admin@jejakbelajar.id / admin123</p>
+                      <p><strong>Guru:</strong> guru@jejakbelajar.id / guru123</p>
+                      <p><strong>Siswa:</strong> siswa@jejakbelajar.id / siswa123</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
