@@ -18,6 +18,28 @@ const statusLabels: Record<string, { label: string; className: string }> = {
 
 
 export default function TeachersPage() {
+  // ...existing code...
+
+  // Handler for adding teacher
+  const handleAddTeacher = async (e: any) => {
+    e.preventDefault();
+    const supabase = createClient();
+    const teacherToSave = {
+      name: newTeacher.name,
+      email: newTeacher.email,
+      phone: newTeacher.phone,
+      subject: newTeacher.subject,
+      status: 1 // default aktif
+    };
+    const { error } = await supabase.from('teachers').insert([teacherToSave]);
+    if (!error) {
+      setAddTeacherDialog(false);
+      setNewTeacher({ name: '', email: '', phone: '', subject: '' });
+      await fetchTeachers();
+    } else {
+      alert('Gagal menambah guru! ' + (error.message || error.details || ''));
+    }
+  };
 
   const columns = [
     {
@@ -356,7 +378,7 @@ export default function TeachersPage() {
           <DialogHeader>
             <DialogTitle>Tambah Guru Baru</DialogTitle>
           </DialogHeader>
-          <form className="space-y-4" onSubmit={e => { e.preventDefault(); setAddTeacherDialog(false); }}>
+          <form className="space-y-4" onSubmit={handleAddTeacher}>
             <div className="space-y-2">
               <Label htmlFor="name">Nama</Label>
               <input
