@@ -28,13 +28,12 @@ export default function TeachersPage() {
       name: newTeacher.name,
       email: newTeacher.email,
       phone: newTeacher.phone,
-      subject: newTeacher.subject,
       status: 1 // default aktif
     };
     const { error } = await supabase.from('teachers').insert([teacherToSave]);
     if (!error) {
       setAddTeacherDialog(false);
-      setNewTeacher({ name: '', email: '', phone: '', subject: '' });
+      setNewTeacher({ name: '', email: '', phone: '' });
       await fetchTeachers();
     } else {
       alert('Gagal menambah guru! ' + (error.message || error.details || ''));
@@ -54,7 +53,6 @@ export default function TeachersPage() {
           </Avatar>
           <div className="ml-4 mt-1">
             <div className="text-base font-semibold text-slate-900">{item.name || <span className="italic text-gray-400">(Nama kosong)</span>}</div>
-            <div className="text-sm font-medium text-slate-600">{item.subject || <span className="italic text-gray-400">(Mata pelajaran kosong)</span>}</div>
             {item.assignedClass && (
               <div className="text-xs text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full inline-block mt-1">
                 Wali Kelas: {item.assignedClass}
@@ -135,9 +133,9 @@ export default function TeachersPage() {
   const [assignClassDialog, setAssignClassDialog] = useState<{ open: boolean; teacherId: string | null }>({ open: false, teacherId: null });
   const [selectedClass, setSelectedClass] = useState('');
   const [addTeacherDialog, setAddTeacherDialog] = useState(false);
-  const [newTeacher, setNewTeacher] = useState({ name: '', email: '', phone: '', subject: '' });
+  const [newTeacher, setNewTeacher] = useState({ name: '', email: '', phone: '' });
   const [editTeacherDialog, setEditTeacherDialog] = useState<{ open: boolean; teacher: any | null }>({ open: false, teacher: null });
-  const [editTeacher, setEditTeacher] = useState({ name: '', email: '', phone: '', subject: '' });
+  const [editTeacher, setEditTeacher] = useState({ name: '', email: '', phone: '' });
   const [teachers, setTeachers] = useState<any[]>([]);
   const [statusDialog, setStatusDialog] = useState<{ open: boolean; teacher: any | null }>({ open: false, teacher: null });
 
@@ -206,7 +204,7 @@ export default function TeachersPage() {
       if (!error) {
         await fetchTeachers();
       } else {
-        alert('Gagal menghapus guru!');
+        alert('Gagal menghapus guru! ' + (error.message || error.details || JSON.stringify(error)));
         console.error('Supabase error:', error);
       }
     }
@@ -218,8 +216,7 @@ export default function TeachersPage() {
     setEditTeacher({
       name: item.name || '',
       email: item.email || '',
-      phone: item.phone || '',
-      subject: item.subject || ''
+      phone: item.phone || ''
     });
   };
 
@@ -230,8 +227,7 @@ export default function TeachersPage() {
     const { error } = await supabase.from('teachers').update({
       name: editTeacher.name,
       email: editTeacher.email,
-      phone: editTeacher.phone,
-      subject: editTeacher.subject
+      phone: editTeacher.phone
     }).eq('id', editTeacherDialog.teacher.id);
     if (!error) {
       setEditTeacherDialog({ open: false, teacher: null });
@@ -351,15 +347,7 @@ export default function TeachersPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-subject">Mata Pelajaran</Label>
-              <input
-                id="edit-subject"
-                type="text"
-                className="block w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                value={editTeacher.subject}
-                onChange={e => setEditTeacher({ ...editTeacher, subject: e.target.value })}
-                required
-              />
+              {/* Input mata pelajaran dihapus */}
             </div>
             <div className="flex justify-end space-x-2 pt-2">
               <Button variant="outline" type="button" className="border-blue-600 text-blue-600 hover:bg-blue-50" onClick={() => setEditTeacherDialog({ open: false, teacher: null })}>
@@ -414,15 +402,7 @@ export default function TeachersPage() {
             </div>
             {/* Input sekolah dihapus */}
             <div className="space-y-2">
-              <Label htmlFor="subject">Mata Pelajaran</Label>
-              <input
-                id="subject"
-                type="text"
-                className="block w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                value={newTeacher.subject}
-                onChange={e => setNewTeacher({ ...newTeacher, subject: e.target.value })}
-                required
-              />
+              {/* Input mata pelajaran dihapus */}
             </div>
             <div className="flex justify-end space-x-2 pt-2">
               <Button variant="outline" type="button" className="border-blue-600 text-blue-600 hover:bg-blue-50" onClick={() => setAddTeacherDialog(false)}>
@@ -432,7 +412,7 @@ export default function TeachersPage() {
                 type="submit"
                 className="bg-blue-600 text-white font-semibold hover:bg-blue-700"
                 disabled={
-                  !newTeacher.name || !newTeacher.email || !newTeacher.phone || !newTeacher.subject
+                  !newTeacher.name || !newTeacher.email || !newTeacher.phone
                 }
               >
                 Simpan
