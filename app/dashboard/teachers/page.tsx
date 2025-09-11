@@ -111,7 +111,8 @@ export default function TeachersPage() {
   const [selectedClass, setSelectedClass] = useState('');
   const [addTeacherDialog, setAddTeacherDialog] = useState(false);
   const [newTeacher, setNewTeacher] = useState({ name: '', email: '', phone: '', subject: '' });
-  const [successDialog, setSuccessDialog] = useState(false);
+  const [editTeacherDialog, setEditTeacherDialog] = useState<{ open: boolean; teacher: any | null }>({ open: false, teacher: null });
+  const [editTeacher, setEditTeacher] = useState({ name: '', email: '', phone: '', subject: '' });
   const [teachers, setTeachers] = useState<any[]>([]);
   const availableClasses = [
     { id: '1', name: 'XII IPA 1', currentTeacher: null },
@@ -156,6 +157,50 @@ export default function TeachersPage() {
     setAssignClassDialog({ open: true, teacherId });
   };
 
+  // Hapus guru dari Supabase
+  const handleDeleteTeacher = async (item: any) => {
+    if (window.confirm(`Yakin ingin menghapus guru ${item.name}?`)) {
+      const supabase = createClient();
+      const { error } = await supabase.from('teachers').delete().eq('id', item.id);
+      if (!error) {
+        await fetchTeachers();
+      } else {
+        alert('Gagal menghapus guru!');
+        console.error('Supabase error:', error);
+      }
+    }
+  };
+
+  // Edit guru
+  const handleEditTeacher = (item: any) => {
+    setEditTeacherDialog({ open: true, teacher: item });
+    setEditTeacher({
+      name: item.name || '',
+      email: item.email || '',
+      phone: item.phone || '',
+      subject: item.subject || ''
+    });
+  };
+
+  const saveEditTeacher = async (e: any) => {
+    e.preventDefault();
+    if (!editTeacherDialog.teacher) return;
+    const supabase = createClient();
+    const { error } = await supabase.from('teachers').update({
+      name: editTeacher.name,
+      email: editTeacher.email,
+      phone: editTeacher.phone,
+      subject: editTeacher.subject
+    }).eq('id', editTeacherDialog.teacher.id);
+    if (!error) {
+      setEditTeacherDialog({ open: false, teacher: null });
+      await fetchTeachers();
+    } else {
+      alert('Gagal mengedit data guru!');
+      console.error('Supabase error:', error);
+    }
+  };
+
   const saveClassAssignment = () => {
     // Implementation for saving class assignment
     console.log('Assigning class', selectedClass, 'to teacher', assignClassDialog.teacherId);
@@ -180,8 +225,8 @@ export default function TeachersPage() {
         data={teachers}
         columns={columns}
         searchPlaceholder="Cari guru berdasarkan nama, sekolah, atau mata pelajaran..."
-        onEdit={(item) => console.log('Edit', item)}
-        onDelete={(item) => console.log('Delete', item)}
+        onEdit={handleEditTeacher}
+        onDelete={handleDeleteTeacher}
         customActions={(item) => (
           <Button
             size="sm"
@@ -194,6 +239,68 @@ export default function TeachersPage() {
         )}
         itemsPerPage={10}
       />
+      {/* Edit Teacher Dialog */}
+      <Dialog open={editTeacherDialog.open} onOpenChange={(open) => setEditTeacherDialog({ open, teacher: open ? editTeacherDialog.teacher : null })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Guru</DialogTitle>
+          </DialogHeader>
+          <form className="space-y-4" onSubmit={saveEditTeacher}>
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Nama</Label>
+              <input
+                id="edit-name"
+                type="text"
+                className="block w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                value={editTeacher.name}
+                onChange={e => setEditTeacher({ ...editTeacher, name: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-email">Email</Label>
+              <input
+                id="edit-email"
+                type="email"
+                className="block w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                value={editTeacher.email}
+                onChange={e => setEditTeacher({ ...editTeacher, email: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-phone">No. HP</Label>
+              <input
+                id="edit-phone"
+                type="text"
+                className="block w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                value={editTeacher.phone}
+                onChange={e => setEditTeacher({ ...editTeacher, phone: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-subject">Mata Pelajaran</Label>
+              <input
+                id="edit-subject"
+                type="text"
+                className="block w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                value={editTeacher.subject}
+                onChange={e => setEditTeacher({ ...editTeacher, subject: e.target.value })}
+                required
+              />
+            </div>
+            <div className="flex justify-end space-x-2 pt-2">
+              <Button variant="outline" type="button" className="border-blue-600 text-blue-600 hover:bg-blue-50" onClick={() => setEditTeacherDialog({ open: false, teacher: null })}>
+                Batal
+              </Button>
+              <Button type="submit" className="bg-blue-600 text-white font-semibold hover:bg-blue-700">
+                Simpan
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
       {/* Add Teacher Dialog */}
       <Dialog open={addTeacherDialog} onOpenChange={setAddTeacherDialog}>
         <DialogContent>
@@ -261,7 +368,6 @@ export default function TeachersPage() {
                 });
                 if (!error) {
                   setAddTeacherDialog(false);
-                  setSuccessDialog(true);
                   setNewTeacher({ name: '', email: '', phone: '', subject: '' });
                   await fetchTeachers();
                 } else {
@@ -279,20 +385,6 @@ export default function TeachersPage() {
               }}>
                 Simpan
               </Button>
-              {/* Success Dialog */}
-              <Dialog open={successDialog} onOpenChange={setSuccessDialog}>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Berhasil!</DialogTitle>
-                  </DialogHeader>
-                  <div className="py-4 text-center text-blue-600 font-semibold">Data guru berhasil disimpan ke database Supabase.</div>
-                  <div className="flex justify-end">
-                    <Button className="bg-blue-600 text-white font-semibold hover:bg-blue-700" onClick={() => setSuccessDialog(false)}>
-                      Tutup
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
             </div>
           </form>
         </DialogContent>

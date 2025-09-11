@@ -52,7 +52,7 @@ export function DataTable({
       filtered.sort((a, b) => {
         const aValue = a[sortColumn]
         const bValue = b[sortColumn]
-        
+
         if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1
         if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
         return 0
@@ -89,30 +89,28 @@ export function DataTable({
               placeholder={searchPlaceholder}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50"
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
             />
           </div>
-          
+
           {/* View Toggle */}
           <div className="flex items-center space-x-2">
             <div className="flex items-center space-x-1 bg-gray-50 rounded-lg p-1 border border-gray-200">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-1.5 rounded-md transition-colors ${
-                  viewMode === 'grid' 
-                    ? 'bg-white shadow-sm border border-gray-200 text-gray-900' 
+                className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid'
+                    ? 'bg-white shadow-sm border border-gray-200 text-gray-900'
                     : 'text-gray-400 hover:text-gray-600'
-                }`}
+                  }`}
               >
                 <Grid3X3 className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setViewMode('table')}
-                className={`p-1.5 rounded-md transition-colors ${
-                  viewMode === 'table' 
-                    ? 'bg-white shadow-sm border border-gray-200 text-gray-900' 
+                className={`p-1.5 rounded-md transition-colors ${viewMode === 'table'
+                    ? 'bg-white shadow-sm border border-gray-200 text-gray-900'
                     : 'text-gray-400 hover:text-gray-600'
-                }`}
+                  }`}
               >
                 <List className="w-4 h-4" />
               </button>
@@ -124,79 +122,79 @@ export function DataTable({
       {/* Content */}
       {viewMode === 'table' ? (
         <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              {columns.map((column) => (
-                <th
-                  key={column.key}
-                  className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                  onClick={() => column.sortable && handleSort(column.key)}
-                >
-                  <div className="flex items-center space-x-1">
-                    <span>{column.header}</span>
-                    {column.sortable && (
-                      <div className="flex flex-col">
-                        {sortColumn === column.key ? (
-                          sortDirection === 'asc' ? (
-                            <ArrowUp className="w-3 h-3 text-indigo-600" />
-                          ) : (
-                            <ArrowDown className="w-3 h-3 text-indigo-600" />
-                          )
-                        ) : (
-                          <ArrowUpDown className="w-3 h-3 text-gray-400" />
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </th>
-              ))}
-              <th className="px-4 md:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {currentData.map((item, index) => (
-              <tr key={index} className="hover:bg-gray-50 transition-colors">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
                 {columns.map((column) => (
-                  <td key={column.key} className="px-6 py-4 whitespace-nowrap">
-                    {column.render ? column.render(item) : item[column.key]}
-                  </td>
+                  <th
+                    key={column.key}
+                    className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => column.sortable && handleSort(column.key)}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{column.header}</span>
+                      {column.sortable && (
+                        <div className="flex flex-col">
+                          {sortColumn === column.key ? (
+                            sortDirection === 'asc' ? (
+                              <ArrowUp className="w-3 h-3 text-blue-600" />
+                            ) : (
+                              <ArrowDown className="w-3 h-3 text-blue-600" />
+                            )
+                          ) : (
+                            <ArrowUpDown className="w-3 h-3 text-gray-400" />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </th>
                 ))}
-                <td className="px-4 md:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex items-center justify-end space-x-2">
-                    {customActions && customActions(item)}
-                    {onView && (
-                      <button
-                        onClick={() => onView(item)}
-                        className="p-2 text-gray-400 hover:text-indigo-600 transition-colors"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                    )}
-                    {onEdit && (
-                      <button
-                        onClick={() => onEdit(item)}
-                        className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                    )}
-                    {onDelete && (
-                      <button
-                        onClick={() => onDelete(item)}
-                        className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                </td>
+                <th className="px-4 md:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {currentData.map((item, index) => (
+                <tr key={index} className="hover:bg-gray-50 transition-colors">
+                  {columns.map((column) => (
+                    <td key={column.key} className="px-6 py-4 whitespace-nowrap">
+                      {column.render ? column.render(item) : item[column.key]}
+                    </td>
+                  ))}
+                  <td className="px-4 md:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex items-center justify-end space-x-2">
+                      {customActions && customActions(item)}
+                      {onView && (
+                        <button
+                          onClick={() => onView(item)}
+                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      )}
+                      {onEdit && (
+                        <button
+                          onClick={() => onEdit(item)}
+                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                      )}
+                      {onDelete && (
+                        <button
+                          onClick={() => onDelete(item)}
+                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       ) : (
         /* Grid View */
@@ -215,14 +213,14 @@ export function DataTable({
                       </div>
                     </div>
                   ))}
-                  
+
                   {/* Actions */}
                   <div className="flex items-center justify-end space-x-2 pt-2 border-t border-gray-100">
                     {customActions && customActions(item)}
                     {onView && (
                       <button
                         onClick={() => onView(item)}
-                        className="p-1.5 text-gray-400 hover:text-indigo-600 transition-colors"
+                        className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -264,7 +262,7 @@ export function DataTable({
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          
+
           <div className="flex items-center space-x-1 overflow-x-auto">
             {Array.from({ length: totalPages }, (_, i) => i + 1)
               .filter(page => {
@@ -278,18 +276,17 @@ export function DataTable({
                   )}
                   <button
                     onClick={() => setCurrentPage(page)}
-                    className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                      currentPage === page
-                        ? 'bg-indigo-600 text-white'
+                    className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${currentPage === page
+                        ? 'bg-blue-600 text-white'
                         : 'text-gray-700 hover:bg-gray-100'
-                    }`}
+                      }`}
                   >
                     {page}
                   </button>
                 </React.Fragment>
               ))}
           </div>
-          
+
           <button
             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
@@ -306,7 +303,7 @@ export function DataTable({
 // Helper components for consistent styling
 export function StatusBadge({ status, labels }: { status: string; labels: Record<string, { label: string; className: string }> }) {
   const config = labels[status] || { label: status, className: 'bg-gray-100 text-gray-800' }
-  
+
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.className}`}>
       {config.label}
@@ -316,10 +313,10 @@ export function StatusBadge({ status, labels }: { status: string; labels: Record
 
 export function UserAvatar({ name }: { name: string }) {
   const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2)
-  
+
   return (
     <div className="flex items-center space-x-3">
-      <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
+      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
         <span className="text-white text-sm font-semibold">{initials}</span>
       </div>
       <div>
