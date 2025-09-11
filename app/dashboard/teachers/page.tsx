@@ -357,32 +357,13 @@ export default function TeachersPage() {
               <Button variant="outline" type="button" className="border-blue-600 text-blue-600 hover:bg-blue-50" onClick={() => setAddTeacherDialog(false)}>
                 Batal
               </Button>
-              <Button type="submit" className="bg-blue-600 text-white font-semibold hover:bg-blue-700" onClick={async (e) => {
-                e.preventDefault();
-                const supabase = createClient();
-                const { error } = await supabase.from('teachers').insert({
-                  name: newTeacher.name,
-                  email: newTeacher.email,
-                  phone: newTeacher.phone,
-                  subject: newTeacher.subject
-                });
-                if (!error) {
-                  setAddTeacherDialog(false);
-                  setNewTeacher({ name: '', email: '', phone: '', subject: '' });
-                  await fetchTeachers();
-                } else {
-                  console.error('Supabase error:', error);
-                  let errorMsg = '';
-                  if (error) {
-                    if (typeof error === 'object' && error !== null && 'message' in error) {
-                      errorMsg = (error as any).message;
-                    } else {
-                      errorMsg = JSON.stringify(error);
-                    }
-                  }
-                  alert('Gagal menyimpan data guru!\n' + errorMsg);
+              <Button
+                type="submit"
+                className="bg-blue-600 text-white font-semibold hover:bg-blue-700"
+                disabled={
+                  !newTeacher.name || !newTeacher.email || !newTeacher.phone || !newTeacher.subject
                 }
-              }}>
+              >
                 Simpan
               </Button>
             </div>
