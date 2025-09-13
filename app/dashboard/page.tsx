@@ -174,17 +174,13 @@ export default function DashboardPage() {
 
   // ...existing code...
   // Import chart
-  const DailyUsageChart = require('@/components/dashboard/daily-usage-chart').default
+  // ...existing code...
   return (
     <div className="space-y-6">
       {/* Header Section */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Statistik Penggunaan Sistem</h1>
         <p className="text-gray-600">Pantau aktivitas Assessment as Learning (AaL) dalam P5 dan Kokurikuler</p>
-        {/* Statistik Penggunaan Harian */}
-        <div className="mt-6">
-          <DailyUsageChart />
-        </div>
       </div>
 
       {/* Statistics Cards Grid - P5 Focused */}
