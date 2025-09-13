@@ -10,8 +10,14 @@ import { Plus, Calendar, Users, BookOpen } from 'lucide-react'
 
 export default function AcademicYearsPage() {
   const statusLabels = {
-    aktif: { label: 'Aktif', className: 'bg-green-100 text-green-800' },
-    nonaktif: { label: 'Nonaktif', className: 'bg-red-100 text-red-800' }
+    1: { label: 'Aktif', className: 'bg-green-100 text-green-800' },
+    0: { label: 'Selesai', className: 'bg-blue-100 text-blue-800' },
+    2: { label: 'Direncanakan', className: 'bg-yellow-100 text-yellow-800' }
+  }
+
+  const periodeLabels: Record<number, string> = {
+    1: 'Ganjil',
+    2: 'Genap'
   }
 
   const columns = [
@@ -48,7 +54,7 @@ export default function AcademicYearsPage() {
       key: 'periode',
       header: 'Periode',
       render: (item: any) => (
-        <div className="text-sm font-medium">{item.periode}</div>
+        <div className="text-sm font-medium">{periodeLabels[item.periode]}</div>
       )
     }
   ]
@@ -57,12 +63,20 @@ export default function AcademicYearsPage() {
   const [academicYears, setAcademicYears] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [addDialogOpen, setAddDialogOpen] = useState(false)
-  const [newYear, setNewYear] = useState({
-    year: '',
-    status: 'aktif',
+  const [newYear, setNewYear] = useState<{
+    startYear: string;
+    endYear: string;
+    status: number;
+    startDate: string;
+    endDate: string;
+    periode: number;
+  }>({
+    startYear: '',
+    endYear: '',
+    status: 1,
     startDate: '',
     endDate: '',
-    periode: 'Ganjil'
+    periode: 1
   })
 
   // Ambil data dari Supabase saat mount
@@ -72,20 +86,13 @@ export default function AcademicYearsPage() {
       const supabase = createClient()
       const { data, error } = await supabase.from('academic_years').select('*').order('year', { ascending: false })
       if (!error && data) {
-        // Mapping snake_case ke camelCase agar tidak invalid date
         const mapped = data.map((item: any) => ({
           id: item.id,
           year: item.year,
+          status: item.status,
           startDate: item.start_date,
           endDate: item.end_date,
-          semester1Start: item.semester1_start,
-          semester1End: item.semester1_end,
-          semester2Start: item.semester2_start,
-          semester2End: item.semester2_end,
-          totalSchools: item.total_schools ?? 0,
-          totalClasses: item.total_classes ?? 0,
-          totalStudents: item.total_students ?? 0,
-          status: item.status
+          periode: item.periode ?? 1 // pastikan ini ada!
         }))
         setAcademicYears(mapped)
       }
@@ -111,15 +118,10 @@ export default function AcademicYearsPage() {
     const supabase = createClient()
     const { error } = await supabase.from('academic_years').update({
       year: editYear.year,
+      status: editYear.status,
       start_date: editYear.startDate,
       end_date: editYear.endDate,
-      semester1_start: editYear.semester1Start,
-      semester1_end: editYear.semester1End,
-      semester2_start: editYear.semester2Start,
-      semester2_end: editYear.semester2End,
-      total_classes: editYear.totalClasses,
-      total_students: editYear.totalStudents,
-      status: editYear.status
+      periode: editYear.periode
     }).eq('id', editYear.id)
     if (error) {
       alert('Gagal edit tahun ajaran: ' + error.message)
@@ -132,13 +134,7 @@ export default function AcademicYearsPage() {
           year: item.year,
           startDate: item.start_date,
           endDate: item.end_date,
-          semester1Start: item.semester1_start,
-          semester1End: item.semester1_end,
-          semester2Start: item.semester2_start,
-          semester2End: item.semester2_end,
-          totalSchools: item.total_schools ?? 0,
-          totalClasses: item.total_classes ?? 0,
-          totalStudents: item.total_students ?? 0,
+          periode: item.periode ?? 1,
           status: item.status
         }))
         setAcademicYears(mapped)
@@ -166,13 +162,7 @@ export default function AcademicYearsPage() {
           year: item.year,
           startDate: item.start_date,
           endDate: item.end_date,
-          semester1Start: item.semester1_start,
-          semester1End: item.semester1_end,
-          semester2Start: item.semester2_start,
-          semester2End: item.semester2_end,
-          totalSchools: item.total_schools ?? 0,
-          totalClasses: item.total_classes ?? 0,
-          totalStudents: item.total_students ?? 0,
+          periode: item.periode ?? 1,
           status: item.status
         }))
         setAcademicYears(mapped)
@@ -204,9 +194,10 @@ export default function AcademicYearsPage() {
               e.preventDefault()
               setLoading(true)
               const supabase = createClient()
+              const yearString = `${newYear.startYear}/${newYear.endYear}`
               const { error } = await supabase.from('academic_years').insert([
                 {
-                  year: newYear.year,
+                  year: yearString,
                   status: newYear.status,
                   start_date: newYear.startDate,
                   end_date: newYear.endDate,
@@ -224,24 +215,19 @@ export default function AcademicYearsPage() {
                     year: item.year,
                     startDate: item.start_date,
                     endDate: item.end_date,
-                    semester1Start: item.semester1_start,
-                    semester1End: item.semester1_end,
-                    semester2Start: item.semester2_start,
-                    semester2End: item.semester2_end,
-                    totalSchools: item.total_schools ?? 0,
-                    totalClasses: item.total_classes ?? 0,
-                    totalStudents: item.total_students ?? 0,
+                    periode: item.periode ?? 1,
                     status: item.status
                   }))
                   setAcademicYears(mapped)
                 }
                 setAddDialogOpen(false)
                 setNewYear({
-                  year: '',
-                  status: 'aktif',
+                  startYear: '',
+                  endYear: '',
+                  status: 1,
                   startDate: '',
                   endDate: '',
-                  periode: 'Ganjil'
+                  periode: 1
                 })
               }
               setLoading(false)
@@ -249,12 +235,31 @@ export default function AcademicYearsPage() {
           >
             <div>
               <Label>Tahun Ajaran</Label>
-              <input
-                className="block w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                value={newYear.year}
-                onChange={e => setNewYear({ ...newYear, year: e.target.value })}
-                required
-              />
+              <div className="flex gap-2">
+                <select
+                  className="block w-1/2 rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                  value={newYear.startYear}
+                  onChange={e => setNewYear({ ...newYear, startYear: e.target.value })}
+                  required
+                >
+                  <option value="">Tahun Awal</option>
+                  {Array.from({ length: 16 }, (_, i) => 2015 + i).map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+                <span className="self-center">/</span>
+                <select
+                  className="block w-1/2 rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                  value={newYear.endYear}
+                  onChange={e => setNewYear({ ...newYear, endYear: e.target.value })}
+                  required
+                >
+                  <option value="">Tahun Akhir</option>
+                  {Array.from({ length: 16 }, (_, i) => 2015 + i).map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -269,17 +274,24 @@ export default function AcademicYearsPage() {
 
             <div>
               <Label>Status</Label>
-              <select className="block w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50" value={newYear.status} onChange={e => setNewYear({ ...newYear, status: e.target.value })}>
-                <option value="planned">Direncanakan</option>
-                <option value="active">Aktif</option>
-                <option value="completed">Selesai</option>
+              <select className="block w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50" value={newYear.status} onChange={e => setNewYear({ ...newYear, status: Number(e.target.value) })}>
+                <option value={1}>Aktif</option>
+                <option value={0}>Selesai</option>
+                <option value={2}>Direncanakan</option>
+              </select>
+            </div>
+            <div>
+              <Label>Periode</Label>
+              <select className="block w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50" value={newYear.periode} onChange={e => setNewYear({ ...newYear, periode: Number(e.target.value) })}>
+                <option value={1}>Ganjil</option>
+                <option value={2}>Genap</option>
               </select>
             </div>
             <div className="flex justify-end space-x-2">
               <Button variant="outline" type="button" className="border-blue-600 text-blue-600 hover:bg-blue-50" onClick={() => setAddDialogOpen(false)}>
                 Batal
               </Button>
-              <Button type="submit" className="bg-blue-600 text-white font-semibold hover:bg-blue-700" disabled={!newYear.year || !newYear.startDate || !newYear.endDate || !newYear.periode}>
+              <Button type="submit" className="bg-blue-600 text-white font-semibold hover:bg-blue-700" disabled={!newYear.startYear || !newYear.endYear || !newYear.startDate || !newYear.endDate || !newYear.periode}>
                 Simpan
               </Button>
             </div>
@@ -303,13 +315,63 @@ export default function AcademicYearsPage() {
             <DialogTitle>Edit Tahun Ajaran</DialogTitle>
           </DialogHeader>
           {editYear && (
-            <form className="space-y-4" onSubmit={saveEditYear}>
-              <div>
-                <Label>Tahun Ajaran</Label>
+            <form className="space-y-4" onSubmit={e => {
+              e.preventDefault()
+              setLoading(true)
+              const yearString = `${editYear.startYear}/${editYear.endYear}`
+              const supabase = createClient()
+              supabase.from('academic_years').update({
+                year: yearString,
+                status: editYear.status,
+                start_date: editYear.startDate,
+                end_date: editYear.endDate,
+                periode: editYear.periode
+              }).eq('id', editYear.id).then(async ({ error }) => {
+                if (error) {
+                  alert('Gagal edit tahun ajaran: ' + error.message)
+                } else {
+                  const { data } = await supabase.from('academic_years').select('*').order('year', { ascending: false })
+                  if (data) {
+                    const mapped = data.map((item: any) => ({
+                      id: item.id,
+                      year: item.year,
+                      startYear: item.year.split('/')[0],
+                      endYear: item.year.split('/')[1],
+                      startDate: item.start_date,
+                      endDate: item.end_date,
+                      periode: item.periode,
+                      status: item.status
+                    }))
+                    setAcademicYears(mapped)
+                  }
+                  setEditDialogOpen(false)
+                  setEditYear(null)
+                }
+                setLoading(false)
+              })
+            }}>
+              {/* ...existing code... */}
+              <Label>Tahun Ajaran</Label>
+              <div className="flex gap-2">
                 <input
-                  className="block w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                  value={editYear.year}
-                  onChange={e => setEditYear({ ...editYear, year: e.target.value })}
+                  type="number"
+                  min="2000"
+                  max="2100"
+                  className="block w-1/2 rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                  placeholder="Tahun Awal"
+                  value={editYear.startYear || (editYear.year ? editYear.year.split('/')[0] : '')}
+                  onChange={e => setEditYear({ ...editYear, startYear: e.target.value })}
+                  required
+                />
+                <span className="self-center">/</span>
+                <input
+                  type="number"
+                  min="2000"
+                  max="2100"
+                  className="block w-1/2 rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                  placeholder="Tahun Akhir"
+                  value={editYear.endYear || (editYear.year ? editYear.year.split('/')[1] : '')}
+                  onChange={e => setEditYear({ ...editYear, endYear: e.target.value })}
                   required
                 />
               </div>
@@ -326,10 +388,17 @@ export default function AcademicYearsPage() {
 
               <div>
                 <Label>Status</Label>
-                <select className="block w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50" value={editYear.status} onChange={e => setEditYear({ ...editYear, status: e.target.value })}>
-                  <option value="planned">Direncanakan</option>
-                  <option value="active">Aktif</option>
-                  <option value="completed">Selesai</option>
+                <select className="block w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50" value={editYear.status} onChange={e => setEditYear({ ...editYear, status: Number(e.target.value) })}>
+                  <option value={1}>Aktif</option>
+                  <option value={0}>Selesai</option>
+                  <option value={2}>Direncanakan</option>
+                </select>
+              </div>
+              <div>
+                <Label>Periode</Label>
+                <select className="block w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-600 focus:ring focus:ring-blue-200 focus:ring-opacity-50" value={editYear.periode} onChange={e => setEditYear({ ...editYear, periode: Number(e.target.value) })}>
+                  <option value={1}>Ganjil</option>
+                  <option value={2}>Genap</option>
                 </select>
               </div>
               <div className="flex justify-end space-x-2">
