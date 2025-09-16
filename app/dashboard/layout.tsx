@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { DummyAuth, User } from '@/lib/dummy-auth'
+import { createClient } from '@/lib/supabase'
 import Navigation from '@/components/ui/navigation'
 import { Search, Bell, Upload, Plus, Grid3X3, List, Filter, ChevronDown, Menu } from 'lucide-react'
 
@@ -11,19 +11,20 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
     const checkAuth = async () => {
-      const currentUser = await DummyAuth.getUser()
-      if (!currentUser) {
-        router.push('/auth/login')
+      const supabase = createClient()
+      const { data } = await supabase.auth.getUser()
+      if (!data?.user) {
+        router.replace('/auth/login')
         return
       }
-      setUser(currentUser)
+      setUser(data.user)
       setLoading(false)
     }
     checkAuth()
@@ -58,11 +59,11 @@ export default function DashboardLayout({
 
   return (
     <div className="flex h-screen bg-white overflow-hidden">
-      <Navigation 
-        isMobileOpen={isMobileMenuOpen} 
-        onMobileClose={() => setIsMobileMenuOpen(false)} 
+      <Navigation
+        isMobileOpen={isMobileMenuOpen}
+        onMobileClose={() => setIsMobileMenuOpen(false)}
       />
-      
+
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile Header */}
         <div className="md:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">

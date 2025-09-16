@@ -1,8 +1,9 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Users, BookOpen, GraduationCap, TrendingUp, Calendar, Target, Award, Activity, Brain, Heart, Handshake, Lightbulb, User } from 'lucide-react'
+import { createClient } from '@/lib/supabase'
 
 // Komponen untuk Statistik Card
 function StatCard({
@@ -129,243 +130,86 @@ function DimensionProgress({
 }
 
 export default function DashboardPage() {
-  // Sample data untuk aktivitas terbaru P5
-  const recentActivities = [
-    {
-      title: "Jurnal Refleksi P5 Diselesaikan",
-      description: "28 siswa menyelesaikan jurnal refleksi Proyek Kewirausahaan",
-      time: "5 menit yang lalu",
-      type: "reflection" as const
-    },
-    {
-      title: "Penilaian Diri Baru",
-      description: "45 kuisioner penilaian diri dimensi Beriman & Berakhlak Mulia",
-      time: "12 menit yang lalu",
-      type: "assessment" as const
-    },
-    {
-      title: "Observasi Pembelajaran",
-      description: "Guru mengisi 15 lembar observasi dimensi Bernalar Kritis",
-      time: "23 menit yang lalu",
-      type: "observation" as const
-    },
-    {
-      title: "Proyek P5 Baru",
-      description: "Proyek Budaya Lokal untuk Kelas XI-IPA 2 telah dibuat",
-      time: "1 jam yang lalu",
-      type: "project" as const
-    },
-    {
-      title: "Penilaian Sebaya Selesai",
-      description: "Dimensi Bergotong Royong - 32 siswa saling menilai",
-      time: "2 jam yang lalu",
-      type: "assessment" as const
+  const [role, setRole] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchRole = async () => {
+      const supabase = createClient()
+      const { data } = await supabase.auth.getUser()
+      // Cek role dari user_metadata atau ambil dari tabel profiles
+      let userRole = data?.user?.user_metadata?.role || null
+      if (!userRole && data?.user?.email) {
+        // Coba ambil dari tabel profiles jika user_metadata tidak ada
+        const { data: profile } = await supabase.from('profiles').select('role').eq('email', data.user.email).single()
+        userRole = profile?.role || null
+      }
+      // Fallback: jika email admin demo, set role ke 'admin'
+      if (!userRole && data?.user?.email === 'admin@jejakbelajar.id') {
+        userRole = 'admin'
+      }
+      setRole(userRole)
+      setLoading(false)
     }
-  ]
+    fetchRole()
+  }, [])
 
-  // Data untuk progress dimensi P5
-  const dimensionProgress = [
-    { dimension: "Beriman & Berakhlak Mulia", score: 3.2, status: "Berkembang", color: "blue" },
-    { dimension: "Mandiri", score: 2.8, status: "Sedang Berkembang", color: "green" },
-    { dimension: "Bergotong Royong", score: 3.6, status: "Berkembang", color: "purple" },
-    { dimension: "Bernalar Kritis", score: 2.9, status: "Sedang Berkembang", color: "orange" },
-    { dimension: "Kreatif", score: 3.4, status: "Berkembang", color: "pink" }
-  ]
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center text-gray-500">Loading dashboard...</div>
+  }
 
-  // ...existing code...
-  // Import chart
-  // ...existing code...
-  return (
-    <div className="space-y-6">
-      {/* Header Section */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Statistik Penggunaan Sistem</h1>
-        <p className="text-gray-600">Pantau aktivitas Assessment as Learning (AaL) dalam P5 dan Kokurikuler</p>
+  if (!role) {
+    return <div className="min-h-screen flex items-center justify-center text-red-500">Akun tidak memiliki role, hubungi admin.</div>
+  }
+
+  // ADMIN DASHBOARD
+  if (role === 'admin') {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Dashboard Admin</h1>
+        <p className="text-gray-600 mb-4">Kelola akun guru/murid, kelas, tahun ajaran, struktur data, laporan agregat, statistik penggunaan, dan reset akun.</p>
+        {/* Fitur admin: manajemen akun, kelas, tahun ajaran, laporan agregat, statistik, reset akun */}
+        {/* ...tampilkan komponen admin di sini... */}
       </div>
+    )
+  }
 
-      {/* Statistics Cards Grid - P5 Focused */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Total Pengguna Aktif"
-          value="1,247"
-          description="Siswa, guru, dan admin"
-          icon={Users}
-          trend="up"
-          trendValue="+12%"
-          color="text-blue-600"
-        />
-        <StatCard
-          title="Proyek P5 & Kokurikuler"
-          value="45"
-          description="Proyek sedang berjalan"
-          icon={BookOpen}
-          trend="up"
-          trendValue="+8%"
-          color="text-green-600"
-        />
-        <StatCard
-          title="Assessment Selesai"
-          value="8,934"
-          description="Penilaian diri, sebaya, observasi"
-          icon={GraduationCap}
-          trend="up"
-          trendValue="+22%"
-          color="text-purple-600"
-        />
-        <StatCard
-          title="Jurnal Refleksi"
-          value="2,156"
-          description="Refleksi siswa tersubmit"
-          icon={Award}
-          trend="up"
-          trendValue="+18%"
-          color="text-orange-600"
-        />
+  // GURU DASHBOARD
+  if (role === 'teacher' || role === 'guru') {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Dashboard Guru</h1>
+        <p className="text-gray-600 mb-4">Selamat datang, Anda login sebagai <span className="font-semibold text-blue-700">Guru</span>. Berikut hak akses Anda:</p>
+        <ul className="list-disc pl-6 text-gray-700 mb-4">
+          <li>Melihat seluruh data murid di kelas bimbingan, termasuk penilaian</li>
+          <li>Memberi umpan balik tertulis</li>
+          <li>Melihat dan mengunduh laporan individual maupun kelas</li>
+          <li>Mengatur tema, tujuan, deskripsi projek, kriteria penilaian, panduan projek, rubrik penskoran</li>
+          <li>Mengisi lembar observasi dan menilai jurnal refleksi</li>
+        </ul>
+        {/* Komponen fitur guru, akses halaman terkait: */}
+        {/* - Data murid: /dashboard/teacher/students */}
+        {/* - Penilaian & umpan balik: /dashboard/teacher/students, /dashboard/teacher/observations */}
+        {/* - Laporan: /dashboard/teacher/reports */}
+        {/* - Pengaturan projek: /dashboard/teacher/projects */}
+        {/* - Observasi & jurnal: /dashboard/teacher/observations */}
+        {/* ...tampilkan komponen guru di sini... */}
       </div>
+    )
+  }
 
-      {/* Instrumen Assessment Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Penilaian Diri"
-          value="3,456"
-          description="Self-assessment siswa"
-          icon={User}
-          color="text-indigo-600"
-        />
-        <StatCard
-          title="Penilaian Sebaya"
-          value="2,789"
-          description="Peer-assessment antar siswa"
-          icon={Handshake}
-          color="text-teal-600"
-        />
-        <StatCard
-          title="Observasi Guru"
-          value="1,234"
-          description="Lembar observasi diisi"
-          icon={Activity}
-          color="text-yellow-600"
-        />
-        <StatCard
-          title="Feedback Diberikan"
-          value="4,567"
-          description="Umpan balik dari guru"
-          icon={TrendingUp}
-          color="text-rose-600"
-        />
+  // MURID DASHBOARD
+  if (role === 'student' || role === 'murid') {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Dashboard Murid</h1>
+        <p className="text-gray-600 mb-4">Akses projek, penilaian diri/teman, jurnal, komentar guru, skor rata-rata penilaian teman.</p>
+        {/* Fitur murid: akses projek, penilaian diri/teman, jurnal, komentar guru, skor rata-rata */}
+        {/* ...tampilkan komponen murid di sini... */}
       </div>
+    )
+  }
 
-      {/* Dimensi P5 Progress & Activities */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Progress Dimensi P5 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Target className="h-5 w-5 text-blue-600" />
-              Progress Dimensi P5
-            </CardTitle>
-            <CardDescription>
-              Rata-rata capaian 5 dimensi Profil Pelajar Pancasila
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {dimensionProgress.map((item, index) => (
-              <DimensionProgress
-                key={index}
-                dimension={item.dimension}
-                score={item.score}
-                status={item.status}
-                color={item.color}
-              />
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Activity Feed */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Aktivitas Terbaru</CardTitle>
-            <CardDescription>
-              Assessment dan refleksi siswa real-time
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {recentActivities.map((activity, index) => (
-              <ActivityItem
-                key={index}
-                title={activity.title}
-                description={activity.description}
-                time={activity.time}
-                type={activity.type}
-              />
-            ))}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Assessment Stats */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Instrumen Penilaian Hari Ini</CardTitle>
-          <CardDescription>
-            Aktivitas assessment berdasarkan instrumen P5
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-700">142</div>
-              <div className="text-sm text-blue-600">Kuisioner Penilaian Diri</div>
-            </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-700">98</div>
-              <div className="text-sm text-green-600">Penilaian Sebaya</div>
-            </div>
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <div className="text-2xl font-bold text-purple-700">67</div>
-              <div className="text-sm text-purple-600">Jurnal Refleksi</div>
-            </div>
-            <div className="text-center p-4 bg-orange-50 rounded-lg">
-              <div className="text-2xl font-bold text-orange-700">34</div>
-              <div className="text-sm text-orange-600">Lembar Observasi</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Sintaks PjBL Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Status Sintaks Project-Based Learning</CardTitle>
-          <CardDescription>
-            Tahapan PjBL yang sedang berlangsung dalam proyek aktif
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-              <span className="text-sm font-medium">Start with the essential question</span>
-              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">12 Proyek</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-              <span className="text-sm font-medium">Design a plan for the project</span>
-              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">18 Proyek</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
-              <span className="text-sm font-medium">Monitor students and progress</span>
-              <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">8 Proyek</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-              <span className="text-sm font-medium">Assess the outcome</span>
-              <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">5 Proyek</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
-              <span className="text-sm font-medium">Evaluate the experiences</span>
-              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">2 Proyek</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
+  // Default fallback
+  return <div className="min-h-screen flex items-center justify-center text-red-500">Role tidak dikenali.</div>
 }

@@ -26,7 +26,7 @@ export default function LoginPage() {
     try {
       const supabase = createClient()
       const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
-
+      console.log('Supabase login result:', { data, authError })
       if (authError || !data?.user) {
         setError(authError?.message || 'Login gagal, cek email/password')
       } else {
@@ -38,10 +38,15 @@ export default function LoginPage() {
         } catch (err) {
           // Optional: bisa log error, tapi jangan blokir login
         }
-        router.push('/dashboard')
+        console.log('Login sukses, redirecting to /dashboard')
+        router.replace('/dashboard')
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 500);
       }
     } catch (err) {
       setError('Terjadi kesalahan sistem. Silakan coba lagi.')
+      console.error('Login error:', err)
     } finally {
       setLoading(false)
     }
@@ -130,6 +135,10 @@ export default function LoginPage() {
                       <p><strong>Admin:</strong> admin@jejakbelajar.id / admin123</p>
                       <p><strong>Guru:</strong> guru@jejakbelajar.id / guru123</p>
                       <p><strong>Siswa:</strong> siswa@jejakbelajar.id / siswa123</p>
+                      {/* Tampilkan role yang sedang login */}
+                      {email === 'admin@jejakbelajar.id' && <p className="text-green-700 font-bold">Anda login sebagai <strong>Admin</strong></p>}
+                      {email === 'guru@jejakbelajar.id' && <p className="text-green-700 font-bold">Anda login sebagai <strong>Guru</strong></p>}
+                      {email === 'siswa@jejakbelajar.id' && <p className="text-green-700 font-bold">Anda login sebagai <strong>Siswa</strong></p>}
                     </div>
                   </div>
                 </div>
