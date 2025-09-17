@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import { TeacherSearchSelect } from '@/components/ui/teacher-search-select'
+import { TeacherNameById } from '@/components/ui/teacher-name-by-id'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Plus, Mail, Users, BookOpen, Award, UserPlus, MapPin } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
@@ -16,7 +18,7 @@ import { createClient } from '@/lib/supabase'
 export default function StudentsPage() {
   // Edit student dialog state
   const [editStudentDialog, setEditStudentDialog] = useState<{ open: boolean; student: any | null }>({ open: false, student: null });
-  const [editStudent, setEditStudent] = useState({ name: '', email: '', nisn: '', class: '', teacher: '' });
+  const [editStudent, setEditStudent] = useState({ name: '', email: '', nisn: '', class: '', teacher_id: '' });
 
   // Handler for edit button
   const handleEditStudent = (item: any) => {
@@ -26,7 +28,7 @@ export default function StudentsPage() {
       email: item.email || '',
       nisn: item.nisn || '',
       class: item.class || '',
-      teacher: item.teacher || ''
+      teacher_id: item.teacher_id || ''
     });
   };
 
@@ -40,7 +42,7 @@ export default function StudentsPage() {
       email: editStudent.email,
       nisn: editStudent.nisn,
       class: editStudent.class,
-      teacher: editStudent.teacher
+      teacher_id: editStudent.teacher_id
     }).eq('id', editStudentDialog.student.id);
     if (!error) {
       setEditStudentDialog({ open: false, student: null });
@@ -77,7 +79,7 @@ export default function StudentsPage() {
     nisn: '',
     class: '',
     status: 'active',
-    teacher: ''
+    teacher_id: ''
   })
   const [isSaving, setIsSaving] = useState(false)
 
@@ -94,14 +96,14 @@ export default function StudentsPage() {
       email: newStudent.email,
       nisn: newStudent.nisn,
       class: newStudent.class,
-      teacher: newStudent.teacher,
+      teacher_id: newStudent.teacher_id,
       status: 1
     }
     const { error } = await supabase.from('students').insert([studentToSave])
     setIsSaving(false)
     if (!error) {
       setAddDialogOpen(false)
-      setNewStudent({ name: '', email: '', nisn: '', class: '', status: 'active', teacher: '' })
+      setNewStudent({ name: '', email: '', nisn: '', class: '', status: 'active', teacher_id: '' })
       // Refresh students
       const { data } = await supabase.from('students').select('*')
       setStudents(data || [])
@@ -197,7 +199,7 @@ export default function StudentsPage() {
       render: (item: any) => (
         <div className="space-y-1">
           <div className="font-medium text-slate-900">{item.class}</div>
-          <div className="text-sm text-slate-600">Wali: {item.teacher}</div>
+          <div className="text-sm text-slate-600">Wali: <TeacherNameById teacherId={item.teacher_id} /></div>
         </div>
       )
     },
@@ -348,12 +350,10 @@ export default function StudentsPage() {
                 </div>
                 <div>
                   <Label htmlFor="edit-teacher">Wali Kelas</Label>
-                  <input
-                    id="edit-teacher"
-                    type="text"
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-400"
-                    value={editStudent.teacher}
-                    onChange={e => setEditStudent({ ...editStudent, teacher: e.target.value })}
+                  <TeacherSearchSelect
+                    value={editStudent.teacher_id}
+                    onChange={(id) => setEditStudent({ ...editStudent, teacher_id: id })}
+                    placeholder="Cari & pilih wali kelas"
                   />
                 </div>
               </div>
@@ -426,22 +426,20 @@ export default function StudentsPage() {
               </div>
               <div>
                 <Label htmlFor="teacher">Wali Kelas</Label>
-                <input
-                  id="teacher"
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-slate-400"
-                  value={newStudent.teacher}
-                  onChange={e => setNewStudent({ ...newStudent, teacher: e.target.value })}
-                  placeholder="Nama wali kelas"
+                <TeacherSearchSelect
+                  value={newStudent.teacher_id}
+                  onChange={id => setNewStudent({ ...newStudent, teacher_id: id })}
+                  placeholder="Cari & pilih wali kelas"
                 />
               </div>
-            </div>
-            <div className="flex justify-end space-x-2 mt-4">
-              <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50" onClick={() => setAddDialogOpen(false)}>
-                Batal
-              </Button>
-              <Button className="bg-blue-600 text-white font-semibold hover:bg-blue-700 px-6" onClick={handleAddStudent} disabled={isSaving || !newStudent.name || !newStudent.email || !newStudent.nisn || !newStudent.class}>
-                {isSaving ? 'Menyimpan...' : 'Simpan'}
-              </Button>
+              <div className="flex justify-end space-x-2 mt-4">
+                <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50" onClick={() => setAddDialogOpen(false)}>
+                  Batal
+                </Button>
+                <Button className="bg-blue-600 text-white font-semibold hover:bg-blue-700 px-6" onClick={handleAddStudent} disabled={isSaving || !newStudent.name || !newStudent.email || !newStudent.nisn || !newStudent.class}>
+                  {isSaving ? 'Menyimpan...' : 'Simpan'}
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>

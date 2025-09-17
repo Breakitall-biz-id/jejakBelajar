@@ -38,6 +38,10 @@ export default function LoginPage() {
         } catch (err) {
           // Optional: bisa log error, tapi jangan blokir login
         }
+        // Set localStorage email agar navbar bisa deteksi role
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('email', email)
+        }
         console.log('Login sukses, redirecting to /dashboard')
         router.replace('/dashboard')
         setTimeout(() => {

@@ -61,7 +61,6 @@ function ActivityItem({
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'assessment': return 'bg-blue-100 text-blue-800'
-      case 'project': return 'bg-green-100 text-green-800'
       case 'reflection': return 'bg-purple-100 text-purple-800'
       case 'observation': return 'bg-orange-100 text-orange-800'
       default: return 'bg-gray-100 text-gray-800'
@@ -88,7 +87,6 @@ function ActivityItem({
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-gray-900">{title}</p>
         <p className="text-xs text-gray-500">{description}</p>
-        <p className="text-xs text-gray-400 mt-1">{time}</p>
       </div>
     </div>
   )
@@ -137,16 +135,23 @@ export default function DashboardPage() {
     const fetchRole = async () => {
       const supabase = createClient()
       const { data } = await supabase.auth.getUser()
+      // Jika email guru@jejakbelajar.id, set role ke 'teacher' langsung
+      if (data?.user?.email === 'guru@jejakbelajar.id') {
+        setRole('teacher')
+        setLoading(false)
+        return
+      }
+      // Jika email admin@jejakbelajar.id, set role ke 'admin' langsung
+      if (data?.user?.email === 'admin@jejakbelajar.id') {
+        setRole('admin')
+        setLoading(false)
+        return
+      }
       // Cek role dari user_metadata atau ambil dari tabel profiles
       let userRole = data?.user?.user_metadata?.role || null
       if (!userRole && data?.user?.email) {
-        // Coba ambil dari tabel profiles jika user_metadata tidak ada
         const { data: profile } = await supabase.from('profiles').select('role').eq('email', data.user.email).single()
         userRole = profile?.role || null
-      }
-      // Fallback: jika email admin demo, set role ke 'admin'
-      if (!userRole && data?.user?.email === 'admin@jejakbelajar.id') {
-        userRole = 'admin'
       }
       setRole(userRole)
       setLoading(false)
@@ -179,21 +184,9 @@ export default function DashboardPage() {
     return (
       <div className="space-y-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Dashboard Guru</h1>
-        <p className="text-gray-600 mb-4">Selamat datang, Anda login sebagai <span className="font-semibold text-blue-700">Guru</span>. Berikut hak akses Anda:</p>
-        <ul className="list-disc pl-6 text-gray-700 mb-4">
-          <li>Melihat seluruh data murid di kelas bimbingan, termasuk penilaian</li>
-          <li>Memberi umpan balik tertulis</li>
-          <li>Melihat dan mengunduh laporan individual maupun kelas</li>
-          <li>Mengatur tema, tujuan, deskripsi projek, kriteria penilaian, panduan projek, rubrik penskoran</li>
-          <li>Mengisi lembar observasi dan menilai jurnal refleksi</li>
-        </ul>
-        {/* Komponen fitur guru, akses halaman terkait: */}
-        {/* - Data murid: /dashboard/teacher/students */}
-        {/* - Penilaian & umpan balik: /dashboard/teacher/students, /dashboard/teacher/observations */}
-        {/* - Laporan: /dashboard/teacher/reports */}
-        {/* - Pengaturan projek: /dashboard/teacher/projects */}
-        {/* - Observasi & jurnal: /dashboard/teacher/observations */}
-        {/* ...tampilkan komponen guru di sini... */}
+        <p className="text-gray-600 mb-4">
+          Selamat datang, Anda login sebagai <span className="font-semibold text-blue-700">Guru</span>. Silakan gunakan menu di sebelah kiri untuk mengakses fitur utama Anda.
+        </p>
       </div>
     )
   }

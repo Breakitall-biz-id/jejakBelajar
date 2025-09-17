@@ -72,20 +72,41 @@ interface NavigationProps {
 }
 
 export default function Navigation({ isMobileOpen, onMobileClose }: NavigationProps) {
+  // Log user info setiap kali user berubah
   const pathname = usePathname()
   const router = useRouter()
   const [user, setUser] = React.useState<User | null>(null)
   const [favoritesExpanded, setFavoritesExpanded] = useState(true)
   const [projectsExpanded, setProjectsExpanded] = useState(true)
-  const [isTeacher, setIsTeacher] = useState(false)
+
+  // Log user info setiap kali user berubah
+  React.useEffect(() => {
+    if (user) {
+      console.log('NAVBAR USER:', user)
+    }
+  }, [user])
+
+  React.useEffect(() => {
+    if (user) {
+      console.log('NAVBAR USER:', user)
+    }
+  }, [user])
+
+  // Ambil user secara sinkron di render agar menu langsung berubah
+  let isGuruEmail = false
+  if (typeof window !== 'undefined') {
+    const email = localStorage.getItem('email')
+    if (email === 'guru@jejakbelajar.id') isGuruEmail = true
+  }
+  // Fallback: jika user state sudah ada
+  if (user?.email === 'guru@jejakbelajar.id') isGuruEmail = true
+  // Fallback: jika sedang di halaman guru
+  if (pathname.startsWith('/dashboard/teacher')) isGuruEmail = true
 
   React.useEffect(() => {
     const getUser = async () => {
       const currentUser = await DummyAuth.getUser()
-      if (currentUser) {
-        setUser(currentUser)
-        setIsTeacher(currentUser.role === 'teacher')
-      }
+      setUser(currentUser)
     }
     getUser()
   }, [])
@@ -112,19 +133,34 @@ export default function Navigation({ isMobileOpen, onMobileClose }: NavigationPr
   ]
 
   const teacherNavigationItems = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Data Siswa', href: '/dashboard/teacher/students', icon: Users },
-    { name: 'Proyek P5', href: '/dashboard/teacher/projects', icon: BookOpen },
-    { name: 'Observasi & Jurnal', href: '/dashboard/teacher/observations', icon: Eye },
-    { name: 'Laporan', href: '/dashboard/teacher/reports', icon: BarChart3 }
+    { name: 'Dashboard Guru', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Siswa', href: '/dashboard/teacher/students', icon: Users },
+    { name: 'Umpan Balik & Komentar', href: '/dashboard/teacher/students', icon: BookOpen },
+    { name: 'Laporan Individu & Kelas', href: '/dashboard/teacher/reports', icon: BarChart3 },
+    { name: 'Pengaturan Projek', href: '/dashboard/teacher/projects', icon: FileText },
+    { name: 'Rubrik Penskoran', href: '/dashboard/teacher/projects', icon: FileText },
+    { name: 'Observasi Siswa', href: '/dashboard/teacher/observations', icon: Eye },
+    { name: 'Jurnal Refleksi', href: '/dashboard/teacher/observations', icon: File },
+    // Tambahan menu jika ingin fitur lain, bisa ditambah di sini
   ]
 
-  const currentNavigationItems = isTeacher ? teacherNavigationItems : adminNavigationItems
+  const getGuruEmail = () => {
+    if (typeof window !== 'undefined') {
+      // Cek localStorage jika ada
+      const email = localStorage.getItem('email')
+      if (email === 'guru@jejakbelajar.id') return true
+    }
+    // Cek user state
+    if (user?.email === 'guru@jejakbelajar.id') return true
+    return false
+  }
+
+  const currentNavigationItems = isGuruEmail ? teacherNavigationItems : adminNavigationItems
 
   return (
     <>
       {isMobileOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/20 z-40 md:hidden"
           onClick={onMobileClose}
         />
@@ -142,7 +178,7 @@ export default function Navigation({ isMobileOpen, onMobileClose }: NavigationPr
             <UserIcon className="w-5 h-5" />
           </div>
           <span className="text-lg font-semibold text-blue-600">
-            {isTeacher ? 'Teacher Dashboard' : 'JejakBelajar'}
+            {isGuruEmail ? 'Teacher Dashboard' : 'JejakBelajar'}
           </span>
           <button
             onClick={onMobileClose}
@@ -186,7 +222,7 @@ export default function Navigation({ isMobileOpen, onMobileClose }: NavigationPr
           </div>
 
           {/* Favorites */}
-          {!isTeacher && (
+          {!isGuruEmail && (
             <div className="mt-4">
               <button
                 onClick={() => setFavoritesExpanded(!favoritesExpanded)}
@@ -222,7 +258,7 @@ export default function Navigation({ isMobileOpen, onMobileClose }: NavigationPr
           )}
 
           {/* Projects */}
-          {!isTeacher && (
+          {!isGuruEmail && (
             <div className="mt-2">
               <button
                 onClick={() => setProjectsExpanded(!projectsExpanded)}
@@ -261,7 +297,7 @@ export default function Navigation({ isMobileOpen, onMobileClose }: NavigationPr
           )}
 
           {/* AI Assistant */}
-          {!isTeacher && (
+          {!isGuruEmail && (
             <div className="mt-6 px-2">
               <div className="rounded-md bg-blue-50 p-3 flex items-center gap-3">
                 <div className="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center">
